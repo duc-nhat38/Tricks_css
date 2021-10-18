@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loading Template</title>
+    <style>
+        :root {
+            --dashed-loading-color: white;
+            --dashed-loading-width: 56px;
+            --dashed-loading-height: 56px;
+            --dashed-loading-thickness: 4px;
+            --background-drop-showing: rgba(0, 0, 0, 0.15);
+            --background-drop-closing: #fff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .body-relative {
+            position: relative;
+        }
+
+        .loader-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            width: 100%;
+            height: 100%;
+            min-height: 100vh;
+            background: var(--background-drop-showing);
+        }
+
+        .loader-wrapper.hidden-loading {
+            -webkit-animation: closing 0.6s linear;
+            animation: closing 0.6s linear;
+            animation-fill-mode: forwards;
+            -webkit-animation-fill-mode: forwards;
+        }
+
+        .loader-wrapper:not(.hidden-loading) {
+            -webkit-animation: showing 0.6s linear;
+            animation: showing 0.6s linear;
+            animation-fill-mode: forwards;
+            -webkit-animation-fill-mode: forwards;
+        }
+
+        .loader-wrapper-fixed {
+            position: fixed;
+            top: calc((100% - var(--dashed-loading-height)) / 2);
+            left: calc((100% - var(--dashed-loading-width)) / 2);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .dashed-loading {
+            position: relative;
+            width: var(--dashed-loading-width);
+            height: var(--dashed-loading-height);
+        }
+
+        .dashed-loading:after,
+        .dashed-loading:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+            width: calc(var(--dashed-loading-width) - (var(--dashed-loading-thickness) * 2));
+            height: calc(var(--dashed-loading-height) - (var(--dashed-loading-thickness) * 2));
+        }
+
+        .dashed-loading:before {
+            z-index: 5;
+            border: var(--dashed-loading-thickness) dashed var(--dashed-loading-color);
+            border-left: var(--dashed-loading-thickness) solid transparent;
+            border-bottom: var(--dashed-loading-thickness) solid transparent;
+            -webkit-animation: dashed 1s linear infinite;
+            animation: dashed 1s linear infinite;
+        }
+
+        .dashed-loading:after {
+            z-index: 10;
+            border: var(--dashed-loading-thickness) solid var(--dashed-loading-color);
+            border-left: var(--dashed-loading-thickness) solid transparent;
+            border-bottom: var(--dashed-loading-thickness) solid transparent;
+            -webkit-animation: dashed 1s ease infinite;
+            animation: dashed 1s ease infinite;
+        }
+
+        @keyframes dashed {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes showing {
+            0% {
+                width: calc(var(--dashed-loading-width) + 20px);
+                height: calc(var(--dashed-loading-height) + 20px);
+                top: calc((100vh - (var(--dashed-loading-width) + 20px)) / 2);
+                left: calc((100vw - (var(--dashed-loading-height) + 20px)) / 2);
+                min-height: calc(var(--dashed-loading-height) + 20px);
+                background: var(--background-drop-closing);
+            }
+
+            100% {
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                min-height: 100vh;
+                background: var(--background-drop-showing);
+            }
+        }
+
+        @keyframes closing {
+            0% {
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                min-height: 100vh;
+                background: var(--background-drop-showing);
+            }
+
+            100% {
+                width: calc(var(--dashed-loading-width) + 20px);
+                height: calc(var(--dashed-loading-height) + 20px);
+                top: calc((100vh - (var(--dashed-loading-width) + 20px)) / 2);
+                left: calc((100vw - (var(--dashed-loading-height) + 20px)) / 2);
+                min-height: calc(var(--dashed-loading-height) + 20px);
+                background: var(--background-drop-closing);
+            }
+        }
+
+        /* You can remove these code below*/
+        .toggle-loading {
+            width: 100px;
+            height: 50px;
+            background-color: green;
+            border: none;
+            border-radius: 5px;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="body-relative">
+    <div class="loader-wrapper hidden-loading" id="js-loader-wrapper" style="display: none !important;">
+        <div class="loader-wrapper-fixed">
+            <div class="dashed-loading"></div>
+        </div>
+    </div>
+    <button id="js-toggle-loading" class="toggle-loading">Loading</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        $(function () {
+            loader.resizeObserver.observe(document.querySelector("#js-loader-wrapper.hidden-loading"));
+            
+            $(document).ajaxStart(function() {
+                loader.toggle(true);
+            });
+
+            $(document).ajaxStop(function() {
+                loader.toggle();
+            });
+
+            $('#js-toggle-loading').on('click', function () {
+                loader.toggle(true);
+                setTimeout(() => {
+                    loader.toggle();
+                }, 5000);
+            });
+        });
+
+        let loader = (function ($) {
+            const _defaultWidth = Number(getComputedStyle(document.documentElement).getPropertyValue('--dashed-loading-width').replace(/px|rem|em|vh|vw/g, ''));
+
+            function toggle(status = false) {
+                if (typeof status === 'boolean' && status) {
+                    $('body').addClass('body-relative');
+                    $('#js-loader-wrapper').removeClass('hidden-loading');
+                    $('#js-loader-wrapper').attr("style", "display: block !important")
+                } else if (typeof status === 'boolean' && !status) {
+                    $('#js-loader-wrapper').addClass('hidden-loading');
+                } else {
+                    console.error('Status must be of type boolean.');
+                }
+            }
+
+            const resizeObserver = new ResizeObserver((entries) => {
+                if (
+                    $(entries[0].target).hasClass('hidden-loading') &&
+                    !isNaN(_defaultWidth) &&
+                    $(entries[0].target).width() == (_defaultWidth + 20)
+                ) {
+                    $(entries[0].target).attr("style", "display: none !important");
+                }
+            });
+
+            return {
+                toggle,
+                resizeObserver,
+            };
+        })(jQuery);
+    </script>
+</body>
+
+</html>
